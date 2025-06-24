@@ -41,4 +41,4 @@ modelscope
 # paddle 部分的依赖
 # 看src/tools/paddlepaddle/paddle_layout_detection.py内说明
 
-numpy==1.24.4
+# numpy==1.24.4  # Commented out to use already installed numpy version

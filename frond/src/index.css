@@ -1,0 +1,80 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-gray-50 text-gray-900 font-sans;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-medium tracking-tight;
+  }
+}
+
+@keyframes blob {
+  0% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  33% {
+    transform: translate(30px, -50px) scale(1.1);
+  }
+  66% {
+    transform: translate(-20px, 20px) scale(0.9);
+  }
+  100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+}
+
+.animate-blob {
+  animation: blob 7s infinite;
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+.animation-delay-4000 {
+  animation-delay: 4s;
+}
+
+@layer components {
+  .primary-btn {
+    @apply text-sm font-medium px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-500 text-white rounded-full hover:shadow-lg transition-all duration-300 shadow-md;
+  }
+  
+  .card {
+    @apply bg-white p-6 rounded-xl border border-gray-100 hover:shadow-md transition-all duration-300;
+  }
+  
+  .container {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+  
+  .section {
+    @apply py-16 md:py-24;
+  }
+  
+  .gradient-text {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-500;
+  }
+  
+  .glass-card {
+    @apply bg-white bg-opacity-70 backdrop-filter backdrop-blur-lg border border-white border-opacity-20 shadow-lg;
+  }
+  
+  .hover-scale {
+    @apply transition-transform duration-300 hover:scale-105;
+  }
+  
+  .gradient-border {
+    @apply relative overflow-hidden;
+    &::before {
+      content: "";
+      @apply absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-400 to-blue-400 transform origin-left scale-x-0 transition-transform duration-300;
+    }
+    &:hover::before {
+      @apply scale-x-100;
+    }
+  }
+}
