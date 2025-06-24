@@ -9,10 +9,13 @@ SmartPaper API 服务
 
 import os
 import uuid
+import glob
+import re
+from datetime import datetime
 from typing import List, Optional, Dict, Any
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, FileResponse
 from pydantic import BaseModel
 import asyncio
 import json
@@ -54,6 +57,20 @@ class AnalysisResponse(BaseModel):
     result: str
     file_path: str
     prompt_name: str
+    
+class HistoryItem(BaseModel):
+    """历史记录项"""
+    id: str
+    title: str
+    url: str
+    date: str
+    promptName: str
+    file_path: str
+    snippet: str
+    
+class HistoryResponse(BaseModel):
+    """历史记录响应"""
+    history: List[HistoryItem]
 
 # 连接管理器
 class ConnectionManager:
@@ -85,6 +102,106 @@ def get_prompts():
     """获取所有提示词模板"""
     prompts = list_prompts()
     return {"prompts": prompts}
+
+@app.get("/history", response_model=HistoryResponse)
+def get_history():
+    """获取历史分析记录"""
+    try:
+        # 输出目录
+        output_dir = "outputs"
+        history = []
+        
+        # 获取所有分析文件
+        files = glob.glob(os.path.join(output_dir, "analysis_*.md"))
+        
+        for file_path in files:
+            file_name = os.path.basename(file_path)
+            # 解析文件名中的信息
+            match = re.search(r'analysis_([^_]+)_(.+?)_prompt_(.+?)\.md$', file_name)
+            
+            if match:
+                id = match.group(1)
+                url_or_filename = match.group(2)
+                prompt_name = match.group(3)
+                
+                # 获取文件修改时间作为日期
+                mod_time = os.path.getmtime(file_path)
+                date = datetime.fromtimestamp(mod_time).strftime("%Y-%m-%d")
+                
+                # 提取标题和摘要
+                title = url_or_filename
+                snippet = ""
+                
+                with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
+                    content = f.read()
+                    # 尝试从内容中提取标题
+                    title_match = re.search(r'^# (.+)$', content, re.MULTILINE)
+                    if title_match:
+                        title = title_match.group(1)
+                    
+                    # 获取内容前100个字符作为摘要
+                    snippet = content[:200].replace("\n", " ")
+                
+                history.append(
+                    HistoryItem(
+                        id=id,
+                        title=title,
+                        url=url_or_filename,
+                        date=date,
+                        promptName=prompt_name,
+                        file_path=file_path,
+                        snippet=snippet
+                    )
+                )
+        
+        # 按日期降序排序
+        history.sort(key=lambda x: x.date, reverse=True)
+        
+        return {"history": history}
+    except Exception as e:
+        logger.error(f"获取历史记录失败: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.delete("/history/{file_id}")
+def delete_history(file_id: str):
+    """删除历史记录"""
+    try:
+        output_dir = "outputs"
+        files = glob.glob(os.path.join(output_dir, f"analysis_{file_id}_*.md"))
+        
+        if not files:
+            raise HTTPException(status_code=404, detail="未找到指定的历史记录")
+            
+        for file_path in files:
+            os.remove(file_path)
+            
+        return {"success": True, "message": "删除成功"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"删除历史记录失败: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/history/{file_id}")
+def download_history(file_id: str):
+    """下载历史记录"""
+    try:
+        output_dir = "outputs"
+        files = glob.glob(os.path.join(output_dir, f"analysis_{file_id}_*.md"))
+        
+        if not files:
+            raise HTTPException(status_code=404, detail="未找到指定的历史记录")
+            
+        return FileResponse(
+            files[0],
+            media_type="text/markdown",
+            filename=os.path.basename(files[0])
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"下载历史记录失败: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/analyze", response_model=AnalysisResponse)
 async def analyze_paper(request: AnalysisRequest, background_tasks: BackgroundTasks):
