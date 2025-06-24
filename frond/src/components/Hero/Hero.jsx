@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { SlideUp, BounceIn } from "../../animation/animateExtended";
 import { FaArrowRight } from "react-icons/fa";
 import { FaCode, FaRobot } from "react-icons/fa";
+import { Link } from "react-router-dom";
 
 const Hero = () => {
   return (
@@ -35,30 +36,33 @@ const Hero = () => {
               使用AI技术快速分析和理解学术论文，无需编写代码。只需输入论文URL，选择模板，即可获得结构化的分析结果。
             </motion.p>
             <div className="flex flex-col sm:flex-row gap-4 pt-8">
-              <motion.button
-                variants={BounceIn(0.6)}
-                initial="initial"
-                animate="animate"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="px-6 py-3.5 bg-gradient-to-r from-purple-600 to-blue-500 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2 font-medium"
-                onClick={() => window.location.href = '/experience'}
-              >
-                <FaRobot className="text-sm" />
-                <span>开始分析</span>
-                <FaArrowRight className="text-xs ml-1" />
-              </motion.button>
-              <motion.button
-                variants={BounceIn(0.8)}
-                initial="initial"
-                animate="animate"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="text-sm font-medium px-6 py-3.5 border border-gray-200 rounded-full hover:bg-white hover:border-purple-200 transition-all duration-300 shadow-sm flex items-center gap-2 bg-white bg-opacity-50 backdrop-filter backdrop-blur-sm"
-              >
-                <FaCode className="text-sm" />
-                <span>查看文档</span>
-              </motion.button>
+              <Link to="/analyze">
+                <motion.button
+                  variants={BounceIn(0.6)}
+                  initial="initial"
+                  animate="animate"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="px-6 py-3.5 bg-gradient-to-r from-purple-600 to-blue-500 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2 font-medium"
+                >
+                  <FaRobot className="text-sm" />
+                  <span>开始分析</span>
+                  <FaArrowRight className="text-xs ml-1" />
+                </motion.button>
+              </Link>
+              <Link to="/history">
+                <motion.button
+                  variants={BounceIn(0.8)}
+                  initial="initial"
+                  animate="animate"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="text-sm font-medium px-6 py-3.5 border border-gray-200 rounded-full hover:bg-white hover:border-purple-200 transition-all duration-300 shadow-sm flex items-center gap-2 bg-white bg-opacity-50 backdrop-filter backdrop-blur-sm"
+                >
+                  <FaCode className="text-sm" />
+                  <span>查看历史</span>
+                </motion.button>
+              </Link>
             </div>
           </div>
           {/* Images section */}
