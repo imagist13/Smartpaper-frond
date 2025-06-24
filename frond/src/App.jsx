@@ -1,8 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from './components/ui/toaster';
-import HomePage from './pages/HomePage';
 import AnalyzePage from './pages/AnalyzePage';
-import Experience from './pages/Experience';
+import History from './pages/History';
 import Home from './pages/Home';
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -14,10 +13,9 @@ function App() {
         <Header />
         <main className="flex-grow container mx-auto px-4 py-8">
           <Routes>
-            <Route path="/" element={<HomePage />} />
+            <Route path="/" element={<Home />} />
             <Route path="/analyze" element={<AnalyzePage />} />
-            <Route path="/experience" element={<Experience />} />
-            <Route path="/home" element={<Home />} />
+            <Route path="/history" element={<History />} />
           </Routes>
         </main>
         <Footer />

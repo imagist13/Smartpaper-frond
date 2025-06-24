@@ -21,7 +21,7 @@ const Header = () => {
           <ul className="flex space-x-8">
             <li>
               <Link to="/" className="text-gray-600 hover:text-blue-600 transition-colors">
-                首页
+                主页
               </Link>
             </li>
             <li>
@@ -30,13 +30,8 @@ const Header = () => {
               </Link>
             </li>
             <li>
-              <Link to="/experience" className="text-gray-600 hover:text-blue-600 transition-colors">
-                体验
-              </Link>
-            </li>
-            <li>
-              <Link to="/home" className="text-gray-600 hover:text-blue-600 transition-colors">
-                主页
+              <Link to="/history" className="text-gray-600 hover:text-blue-600 transition-colors">
+                历史记录
               </Link>
             </li>
           </ul>
