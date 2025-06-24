@@ -4,9 +4,9 @@ import yaml
 from pathlib import Path
 import requests
 
-from core.llm_wrapper import LLMWrapper
-from core.document_converter import convert_to_text
-from utils.output_formatter import OutputFormatter
+from src.core.llm_wrapper import LLMWrapper
+from src.core.document_converter import convert_to_text
+from src.utils.output_formatter import OutputFormatter
 from loguru import logger
 
 

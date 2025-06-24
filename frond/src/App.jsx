@@ -1,21 +1,30 @@
-import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Navbar from "./components/Navbar/Navbar";
-import Home from "./pages/Home";
-import Experience from "./pages/Experience";
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Toaster } from './components/ui/toaster';
+import HomePage from './pages/HomePage';
+import AnalyzePage from './pages/AnalyzePage';
+import Experience from './pages/Experience';
+import Home from './pages/Home';
+import Header from './components/Header';
+import Footer from './components/Footer';
 
-const App = () => {
+function App() {
   return (
     <Router>
-      <main className="bg-gray-50">
-        <Navbar />
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/experience" element={<Experience />} />
-        </Routes>
-      </main>
+      <div className="flex flex-col min-h-screen">
+        <Header />
+        <main className="flex-grow container mx-auto px-4 py-8">
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/analyze" element={<AnalyzePage />} />
+            <Route path="/experience" element={<Experience />} />
+            <Route path="/home" element={<Home />} />
+          </Routes>
+        </main>
+        <Footer />
+        <Toaster />
+      </div>
     </Router>
   );
-};
+}
 
 export default App;
