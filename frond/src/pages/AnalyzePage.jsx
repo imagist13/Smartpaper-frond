@@ -5,6 +5,7 @@ import ReactMarkdown from 'react-markdown';
 import rehypeSanitize from 'rehype-sanitize';
 import rehypeRaw from 'rehype-raw';
 import { useToast } from '../components/ui/use-toast';
+import { useLocation } from 'react-router-dom';
 
 // 组件
 import { Button } from '../components/ui/button';
@@ -23,6 +24,9 @@ const API_BASE_URL = 'http://localhost:8000';
 
 const AnalyzePage = () => {
   const { toast } = useToast();
+  const location = useLocation();
+  const historyItem = location.state?.historyItem;
+  
   const [url, setUrl] = useState('');
   const [prompts, setPrompts] = useState({});
   const [selectedPrompt, setSelectedPrompt] = useState('');
@@ -31,6 +35,7 @@ const AnalyzePage = () => {
   const [clientId] = useState(uuidv4());
   const [socket, setSocket] = useState(null);
   const resultRef = useRef(null);
+  const [isFromHistory, setIsFromHistory] = useState(false);
 
   // 获取可用的提示词模板
   useEffect(() => {
@@ -52,6 +57,40 @@ const AnalyzePage = () => {
 
     fetchPrompts();
   }, [toast]);
+
+  // 如果从历史记录页面跳转过来，加载历史记录内容
+  useEffect(() => {
+    if (historyItem) {
+      const loadHistoryItem = async () => {
+        setIsLoading(true);
+        try {
+          // 设置URL和提示词模板
+          setUrl(historyItem.url);
+          setSelectedPrompt(historyItem.promptName);
+          setIsFromHistory(true);
+          
+          // 获取历史记录内容
+          const response = await axios.get(`${API_BASE_URL}/history/${historyItem.id}`);
+          setResult(response.data);
+          
+          toast({
+            title: '已加载历史记录',
+            description: `已加载"${historyItem.title}"的分析结果`,
+          });
+        } catch (error) {
+          toast({
+            variant: 'destructive',
+            title: '加载历史记录失败',
+            description: error.message || '请稍后重试',
+          });
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      
+      loadHistoryItem();
+    }
+  }, [historyItem, toast]);
 
   // 处理表单提交
   const handleSubmit = async (e) => {
@@ -75,6 +114,8 @@ const AnalyzePage = () => {
       return;
     }
 
+    // 清除之前的历史状态
+    setIsFromHistory(false);
     setResult('');
     setIsLoading(true);
 
@@ -156,10 +197,35 @@ const AnalyzePage = () => {
     setIsLoading(false);
   };
 
+  // 清除当前结果，开始新分析
+  const handleStartNewAnalysis = () => {
+    setIsFromHistory(false);
+    setResult('');
+  };
+
   return (
     <div className="flex flex-col space-y-8">
       <section>
         <h1 className="text-3xl font-bold mb-6 text-gray-900">论文分析</h1>
+        
+        {isFromHistory && (
+          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-md">
+            <div className="flex justify-between items-center">
+              <div>
+                <p className="font-semibold text-blue-800">已加载历史记录</p>
+                <p className="text-sm text-blue-600">使用模板: {selectedPrompt}</p>
+              </div>
+              <Button 
+                variant="outline" 
+                onClick={handleStartNewAnalysis}
+                className="text-blue-600 hover:text-blue-800"
+              >
+                开始新分析
+              </Button>
+            </div>
+          </div>
+        )}
+        
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
             <Label htmlFor="url">论文URL</Label>
@@ -169,7 +235,7 @@ const AnalyzePage = () => {
               placeholder="输入arXiv或其他论文URL (例如: https://arxiv.org/pdf/2305.12002)"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
-              disabled={isLoading}
+              disabled={isLoading || isFromHistory}
               className="w-full"
             />
           </div>
@@ -179,7 +245,7 @@ const AnalyzePage = () => {
             <Select
               value={selectedPrompt}
               onValueChange={setSelectedPrompt}
-              disabled={isLoading || Object.keys(prompts).length === 0}
+              disabled={isLoading || Object.keys(prompts).length === 0 || isFromHistory}
             >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="选择分析模板" />
@@ -199,11 +265,11 @@ const AnalyzePage = () => {
               <Button type="button" variant="destructive" onClick={handleCancel}>
                 取消分析
               </Button>
-            ) : (
+            ) : !isFromHistory ? (
               <Button type="submit" disabled={isLoading || !url || !selectedPrompt}>
                 开始分析
               </Button>
-            )}
+            ) : null}
           </div>
         </form>
       </section>
@@ -248,22 +314,6 @@ const AnalyzePage = () => {
               <pre className="h-full overflow-y-auto p-4 bg-gray-100 rounded border font-mono text-sm">
                 {result || '# 分析结果将以Markdown格式显示在这里'}
               </pre>
-              {result && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="absolute top-2 right-2"
-                  onClick={() => {
-                    navigator.clipboard.writeText(result);
-                    toast({
-                      title: '已复制',
-                      description: 'Markdown内容已复制到剪贴板',
-                    });
-                  }}
-                >
-                  复制
-                </Button>
-              )}
             </div>
           </TabsContent>
         </Tabs>

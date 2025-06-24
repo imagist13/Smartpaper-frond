@@ -12,11 +12,15 @@ function genId() {
 
 const toastTimeouts = new Map()
 
-export function useToast() {
-  const [toasts, setToasts] = useState([])
+// Create a singleton toast function that can be imported directly
+const toastState = {
+  toasts: [],
+  setToasts: null,
+}
 
-  const dismiss = (toastId) => {
-    setToasts((toasts) =>
+function dismiss(toastId) {
+  if (toastState.setToasts) {
+    toastState.setToasts((toasts) =>
       toasts.map((toast) =>
         toast.id === toastId
           ? {
@@ -27,10 +31,54 @@ export function useToast() {
       )
     )
   }
+}
 
-  const remove = (toastId) => {
-    setToasts((toasts) => toasts.filter((toast) => toast.id !== toastId))
+function remove(toastId) {
+  if (toastState.setToasts) {
+    toastState.setToasts((toasts) => toasts.filter((toast) => toast.id !== toastId))
   }
+}
+
+// Exported toast function that can be imported directly
+export function toast({ ...props }) {
+  const id = genId()
+
+  if (toastState.setToasts) {
+    toastState.setToasts((toasts) => {
+      const newToasts = [
+        {
+          ...props,
+          id,
+          open: true,
+        },
+        ...toasts,
+      ].slice(0, TOAST_LIMIT)
+
+      return newToasts
+    })
+  }
+
+  return {
+    id,
+    dismiss: () => dismiss(id),
+    remove: () => remove(id),
+  }
+}
+
+export function useToast() {
+  const [toasts, setToasts] = useState([])
+
+  // Initialize the singleton state
+  useEffect(() => {
+    toastState.setToasts = setToasts
+    return () => {
+      toastState.setToasts = null
+    }
+  }, [setToasts])
+
+  useEffect(() => {
+    toastState.toasts = toasts
+  }, [toasts])
 
   useEffect(() => {
     const handleRemove = (toastId) => {
@@ -48,29 +96,6 @@ export function useToast() {
         handleRemove(toast.id)
       })
   }, [toasts])
-
-  function toast({ ...props }) {
-    const id = genId()
-
-    setToasts((toasts) => {
-      const newToasts = [
-        {
-          ...props,
-          id,
-          open: true,
-        },
-        ...toasts,
-      ].slice(0, TOAST_LIMIT)
-
-      return newToasts
-    })
-
-    return {
-      id,
-      dismiss: () => dismiss(id),
-      remove: () => remove(id),
-    }
-  }
 
   return {
     toast,
