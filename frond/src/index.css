@@ -9,8 +9,22 @@
   h1, h2, h3, h4, h5, h6 {
     @apply font-medium tracking-tight;
   }
+  
+  /* 滚动条美化 */
+  ::-webkit-scrollbar {
+    @apply w-2;
+  }
+  
+  ::-webkit-scrollbar-track {
+    @apply bg-gray-100 rounded-full;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    @apply bg-gray-300 rounded-full hover:bg-gray-400 transition-colors;
+  }
 }
 
+/* 动画关键帧 */
 @keyframes blob {
   0% {
     transform: translate(0px, 0px) scale(1);
@@ -26,8 +40,54 @@
   }
 }
 
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOutRight {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
 .animate-blob {
   animation: blob 7s infinite;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-slideInRight {
+  animation: slideInRight 0.3s forwards;
+}
+
+.animate-slideOutRight {
+  animation: slideOutRight 0.3s forwards;
 }
 
 .animation-delay-2000 {
@@ -41,6 +101,10 @@
 @layer components {
   .primary-btn {
     @apply text-sm font-medium px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-500 text-white rounded-full hover:shadow-lg transition-all duration-300 shadow-md;
+  }
+  
+  .secondary-btn {
+    @apply text-sm font-medium px-6 py-3 border border-gray-200 rounded-full hover:bg-white hover:border-purple-200 transition-all duration-300 shadow-sm bg-white;
   }
   
   .card {
@@ -76,5 +140,37 @@
     &:hover::before {
       @apply scale-x-100;
     }
+  }
+  
+  /* 新增样式 */
+  .purple-shadow {
+    box-shadow: 0 10px 25px -5px rgba(124, 58, 237, 0.1), 0 10px 10px -5px rgba(124, 58, 237, 0.05);
+  }
+  
+  .blue-shadow {
+    box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.1), 0 10px 10px -5px rgba(59, 130, 246, 0.05);
+  }
+  
+  .gradient-shadow {
+    box-shadow: 0 10px 25px -5px rgba(124, 58, 237, 0.1), 0 10px 10px -5px rgba(59, 130, 246, 0.1);
+  }
+  
+  .input-highlight {
+    @apply border-gray-300 focus:border-purple-500 focus:ring focus:ring-purple-200 focus:ring-opacity-50 rounded-lg;
+  }
+  
+  .prose-custom {
+    @apply prose-headings:text-purple-900 prose-h1:border-b prose-h1:pb-2 prose-h1:border-gray-200 prose-a:text-blue-600 prose-strong:text-purple-700 prose-code:text-purple-800 prose-code:bg-purple-50 prose-code:px-1 prose-code:py-0.5 prose-code:rounded;
+  }
+}
+
+/* 响应式工具 */
+@responsive {
+  .text-shadow {
+    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  
+  .text-shadow-lg {
+    text-shadow: 0 4px 8px rgba(0,0,0,0.12), 0 2px 4px rgba(0,0,0,0.08);
   }
 }
