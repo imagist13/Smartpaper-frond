@@ -13,7 +13,7 @@ llm:
     temperature: 0.7
     max_tokens: 8192
   openai_deepseek:
-    api_key: ""
+    api_key: "sk-4bad8a7f6eb14f04bd5754dc778facf0"
     base_url: "https://api.deepseek.com/v1"
     models:
       - "deepseek-chat"
