@@ -112,6 +112,33 @@
   }
 }
 
+@keyframes pulse-light {
+  0%, 100% {
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes rotate-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes infiniteScroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
 .animate-blob {
   animation: blob 7s infinite;
 }
@@ -230,6 +257,37 @@
   .responsive-image {
     @apply max-w-full h-auto rounded;
   }
+  
+  /* 品牌滚动相关样式 */
+  .brands-container {
+    @apply overflow-hidden relative;
+  }
+  
+  .brands-slider {
+    @apply py-4;
+  }
+  
+  .brands-slider .slick-track {
+    display: flex !important;
+    align-items: center !important;
+  }
+  
+  .brands-slider .slick-slide {
+    @apply px-4 flex items-center justify-center h-auto;
+  }
+  
+  .infinite-scroll-track {
+    animation: infiniteScroll 15s linear infinite;
+    display: flex;
+  }
+  
+  .brand-logo {
+    @apply mx-4 grayscale opacity-70 transition-all duration-300;
+  }
+  
+  .brand-logo:hover {
+    @apply grayscale-0 opacity-100 scale-105;
+  }
 }
 
 /* 响应式工具 */
@@ -344,4 +402,131 @@
       white-space: normal;
     }
   }
+  
+  /* 隐藏滚动条但保留滚动功能 */
+  .hide-scrollbar {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE/Edge */
+  }
+  
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+  }
+  
+  /* 卡片样式 */
+  .card-gradient-blue {
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  }
+  
+  .card-gradient-indigo {
+    background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+  }
+  
+  .card-gradient-gray {
+    background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+  }
+  
+  /* 文本截断 */
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  .line-clamp-4 {
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}
+
+/* 滚动条样式 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c5c5c5;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a0a0a0;
+}
+
+/* 标签页动画 */
+.tab-transition {
+  transition: all 0.2s ease-in-out;
+}
+
+/* 品牌合作伙伴相关样式 */
+.partner-card {
+  transition: all 0.3s ease;
+}
+
+.partner-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.2);
+}
+
+.floating-animation {
+  animation: float 6s ease-in-out infinite;
+}
+
+.floating-animation-delay-1 {
+  animation-delay: 1s;
+}
+
+.floating-animation-delay-2 {
+  animation-delay: 2s;
+}
+
+.floating-animation-delay-3 {
+  animation-delay: 3s;
+}
+
+.pulse-animation {
+  animation: pulse-light 4s ease-in-out infinite;
+}
+
+.rotate-animation {
+  animation: rotate-slow 30s linear infinite;
+}
+
+.partner-gradient {
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+}
+
+.partner-gradient-light {
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.1) 0%, rgba(124, 58, 237, 0.1) 100%);
+}
+
+/* 隐藏但保留功能的滚动条，为合作伙伴滚动栏使用 */
+.partners-scroll {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.partners-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* 添加鼠标悬停发光效果 */
+.glow-on-hover:hover {
+  box-shadow: 0 0 15px rgba(99, 102, 241, 0.5);
 }
