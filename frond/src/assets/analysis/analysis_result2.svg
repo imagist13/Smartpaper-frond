@@ -1,0 +1,103 @@
+<svg width="800" height="600" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+  <rect width="800" height="600" fill="#f8fafc" />
+  
+  <!-- 标题区域 -->
+  <rect x="40" y="30" width="720" height="60" rx="8" fill="#6d28d9" />
+  <text x="60" y="70" fontFamily="Arial" fontSize="24" fontWeight="bold" fill="white">
+    论文分析报告: BERT: Pre-training of Deep Bidirectional Transformers
+  </text>
+  
+  <!-- 摘要区域 -->
+  <rect x="40" y="110" width="720" height="100" rx="8" fill="#f5f3ff" />
+  <text x="60" y="140" fontFamily="Arial" fontSize="18" fontWeight="bold" fill="#5b21b6">
+    摘要
+  </text>
+  <text x="60" y="170" fontFamily="Arial" fontSize="14" fill="#1e293b">
+    <tspan x="60" dy="0">本论文提出了BERT，一种基于Transformer的预训练语言表示模型。</tspan>
+    <tspan x="60" dy="20">BERT通过双向训练来获取上下文信息，在11个NLP任务上取得了</tspan>
+    <tspan x="60" dy="20">最先进的结果，并开启了NLP预训练模型的新时代。</tspan>
+  </text>
+  
+  <!-- 方法论 -->
+  <rect x="40" y="230" width="350" height="170" rx="8" fill="#f5f3ff" />
+  <text x="60" y="260" fontFamily="Arial" fontSize="18" fontWeight="bold" fill="#5b21b6">
+    预训练方法
+  </text>
+  
+  <!-- 预训练任务图示 -->
+  <rect x="70" y="280" width="290" height="100" rx="5" fill="white" stroke="#7c3aed" strokeWidth="1" />
+  
+  <!-- MLM任务 -->
+  <rect x="80" y="290" width="130" height="80" rx="3" fill="#ddd6fe" />
+  <text x="145" y="315" fontFamily="Arial" fontSize="14" fill="#5b21b6" textAnchor="middle">掩码语言模型</text>
+  <text x="145" y="340" fontFamily="Arial" fontSize="12" fill="#5b21b6" textAnchor="middle">(MLM)</text>
+  <text x="145" y="360" fontFamily="Arial" fontSize="12" fill="#1e293b" textAnchor="middle">随机掩盖15%的词元</text>
+  
+  <!-- NSP任务 -->
+  <rect x="220" y="290" width="130" height="80" rx="3" fill="#ddd6fe" />
+  <text x="285" y="315" fontFamily="Arial" fontSize="14" fill="#5b21b6" textAnchor="middle">下一句预测</text>
+  <text x="285" y="340" fontFamily="Arial" fontSize="12" fill="#5b21b6" textAnchor="middle">(NSP)</text>
+  <text x="285" y="360" fontFamily="Arial" fontSize="12" fill="#1e293b" textAnchor="middle">预测句子B是否接句子A</text>
+  
+  <!-- 模型规模 -->
+  <rect x="410" y="230" width="350" height="170" rx="8" fill="#dbeafe" />
+  <text x="430" y="260" fontFamily="Arial" fontSize="18" fontWeight="bold" fill="#1e40af">
+    模型规模
+  </text>
+  
+  <!-- 模型规模比较表格 -->
+  <rect x="430" y="280" width="310" height="110" rx="3" fill="white" stroke="#3b82f6" strokeWidth="1" />
+  
+  <!-- 表头 -->
+  <rect x="430" y="280" width="310" height="30" rx="3" fill="#bfdbfe" />
+  <text x="490" y="300" fontFamily="Arial" fontSize="14" fontWeight="bold" fill="#1e40af" textAnchor="middle">模型</text>
+  <text x="590" y="300" fontFamily="Arial" fontSize="14" fontWeight="bold" fill="#1e40af" textAnchor="middle">层数</text>
+  <text x="690" y="300" fontFamily="Arial" fontSize="14" fontWeight="bold" fill="#1e40af" textAnchor="middle">参数</text>
+  
+  <line x1="550" y1="280" x2="550" y2="390" stroke="#93c5fd" strokeWidth="1" />
+  <line x1="630" y1="280" x2="630" y2="390" stroke="#93c5fd" strokeWidth="1" />
+  
+  <!-- 数据行 -->
+  <text x="490" y="330" fontFamily="Arial" fontSize="14" fill="#1e293b" textAnchor="middle">BERT-Base</text>
+  <text x="590" y="330" fontFamily="Arial" fontSize="14" fill="#1e293b" textAnchor="middle">12</text>
+  <text x="690" y="330" fontFamily="Arial" fontSize="14" fill="#1e293b" textAnchor="middle">110M</text>
+  
+  <line x1="430" y1="340" x2="740" y2="340" stroke="#93c5fd" strokeWidth="1" />
+  
+  <text x="490" y="370" fontFamily="Arial" fontSize="14" fill="#1e293b" textAnchor="middle">BERT-Large</text>
+  <text x="590" y="370" fontFamily="Arial" fontSize="14" fill="#1e293b" textAnchor="middle">24</text>
+  <text x="690" y="370" fontFamily="Arial" fontSize="14" fill="#1e293b" textAnchor="middle">340M</text>
+  
+  <!-- 性能评估 -->
+  <rect x="40" y="420" width="720" height="160" rx="8" fill="#ecfdf5" />
+  <text x="60" y="450" fontFamily="Arial" fontSize="18" fontWeight="bold" fill="#065f46">
+    性能评估
+  </text>
+  
+  <!-- 性能对比图表 -->
+  <rect x="60" y="470" width="680" height="90" rx="5" fill="white" stroke="#10b981" strokeWidth="1" />
+  
+  <!-- 轴线 -->
+  <line x1="100" y1="510" x2="700" y2="510" stroke="#064e3b" strokeWidth="2" />
+  <line x1="100" y1="510" x2="100" y2="480" stroke="#064e3b" strokeWidth="2" />
+  
+  <!-- 柱状图 -->
+  <rect x="150" y="490" width="40" height="20" fill="#34d399" />
+  <rect x="220" y="480" width="40" height="30" fill="#34d399" />
+  <rect x="290" y="470" width="40" height="40" fill="#34d399" />
+  <rect x="360" y="485" width="40" height="25" fill="#34d399" />
+  <rect x="430" y="475" width="40" height="35" fill="#34d399" />
+  <rect x="500" y="465" width="40" height="45" fill="#34d399" />
+  <rect x="570" y="480" width="40" height="30" fill="#34d399" />
+  <rect x="640" y="475" width="40" height="35" fill="#34d399" />
+  
+  <!-- 标签 -->
+  <text x="170" y="530" fontFamily="Arial" fontSize="12" fill="#064e3b" textAnchor="middle">SQuAD</text>
+  <text x="240" y="530" fontFamily="Arial" fontSize="12" fill="#064e3b" textAnchor="middle">MNLI</text>
+  <text x="310" y="530" fontFamily="Arial" fontSize="12" fill="#064e3b" textAnchor="middle">QQP</text>
+  <text x="380" y="530" fontFamily="Arial" fontSize="12" fill="#064e3b" textAnchor="middle">QNLI</text>
+  <text x="450" y="530" fontFamily="Arial" fontSize="12" fill="#064e3b" textAnchor="middle">SST-2</text>
+  <text x="520" y="530" fontFamily="Arial" fontSize="12" fill="#064e3b" textAnchor="middle">CoLA</text>
+  <text x="590" y="530" fontFamily="Arial" fontSize="12" fill="#064e3b" textAnchor="middle">STS-B</text>
+  <text x="660" y="530" fontFamily="Arial" fontSize="12" fill="#064e3b" textAnchor="middle">MRPC</text>
+</svg> 

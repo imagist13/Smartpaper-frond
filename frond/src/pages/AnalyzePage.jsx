@@ -1,42 +1,41 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
-import ReactMarkdown from 'react-markdown';
-import rehypeSanitize from 'rehype-sanitize';
-import rehypeRaw from 'rehype-raw';
-import { useToast } from '../components/ui/use-toast';
-import { useLocation } from 'react-router-dom';
 
-// 组件
-import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
-import { Label } from '../components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '../components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
+// 组件导入
+import AnalyzeHeader from '../components/Analyze/AnalyzeHeader';
+import InputForm from '../components/Analyze/InputForm';
+import ResultViewer from '../components/Analyze/ResultViewer';
+import ErrorMessage from '../components/Analyze/ErrorMessage';
 
+// API 基础URL
 const API_BASE_URL = 'http://localhost:8000';
 
 const AnalyzePage = () => {
-  const { toast } = useToast();
+  const navigate = useNavigate();
   const location = useLocation();
   const historyItem = location.state?.historyItem;
   
+  // 状态
+  const [activeTab, setActiveTab] = useState('upload');
+  const [file, setFile] = useState(null);
   const [url, setUrl] = useState('');
   const [prompts, setPrompts] = useState({});
   const [selectedPrompt, setSelectedPrompt] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [result, setResult] = useState('');
   const [clientId] = useState(uuidv4());
   const [socket, setSocket] = useState(null);
-  const resultRef = useRef(null);
+  const [showResult, setShowResult] = useState(false);
+  const [resultTab, setResultTab] = useState('preview');
   const [isFromHistory, setIsFromHistory] = useState(false);
-
+  const [error, setError] = useState(null);
+  
+  // refs
+  const resultRef = useRef(null);
+  const fileInputRef = useRef(null);
+  
   // 获取可用的提示词模板
   useEffect(() => {
     const fetchPrompts = async () => {
@@ -47,22 +46,19 @@ const AnalyzePage = () => {
           setSelectedPrompt(Object.keys(response.data.prompts)[0]);
         }
       } catch (error) {
-        toast({
-          variant: 'destructive',
-          title: '获取提示词模板失败',
-          description: error.message,
-        });
+        console.error('获取提示词模板失败', error);
+        setError('获取提示词模板失败，请检查服务器连接');
       }
     };
 
     fetchPrompts();
-  }, [toast]);
-
+  }, []);
+  
   // 如果从历史记录页面跳转过来，加载历史记录内容
   useEffect(() => {
     if (historyItem) {
       const loadHistoryItem = async () => {
-        setIsLoading(true);
+        setIsAnalyzing(true);
         try {
           // 设置URL和提示词模板
           setUrl(historyItem.url);
@@ -72,252 +68,207 @@ const AnalyzePage = () => {
           // 获取历史记录内容
           const response = await axios.get(`${API_BASE_URL}/history/${historyItem.id}`);
           setResult(response.data);
+          setShowResult(true);
           
-          toast({
-            title: '已加载历史记录',
-            description: `已加载"${historyItem.title}"的分析结果`,
-          });
+          console.log('已加载历史记录', historyItem.title);
         } catch (error) {
-          toast({
-            variant: 'destructive',
-            title: '加载历史记录失败',
-            description: error.message || '请稍后重试',
-          });
+          console.error('加载历史记录失败', error);
+          setError('加载历史记录失败');
         } finally {
-          setIsLoading(false);
+          setIsAnalyzing(false);
         }
       };
       
       loadHistoryItem();
     }
-  }, [historyItem, toast]);
-
-  // 处理表单提交
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (!url) {
-      toast({
-        variant: 'destructive',
-        title: '请输入论文URL',
-        description: '请提供有效的论文URL地址',
-      });
-      return;
-    }
-
-    if (!selectedPrompt) {
-      toast({
-        variant: 'destructive',
-        title: '请选择提示词模板',
-        description: '请从列表中选择一个提示词模板',
-      });
-      return;
-    }
-
-    // 清除之前的历史状态
-    setIsFromHistory(false);
-    setResult('');
-    setIsLoading(true);
-
-    try {
-      // 创建WebSocket连接
-      const ws = new WebSocket(`ws://localhost:8000/ws/analyze/${clientId}`);
-      setSocket(ws);
-
-      ws.onopen = () => {
-        // 发送分析请求
-        ws.send(JSON.stringify({
-          url: url,
-          prompt_name: selectedPrompt,
-        }));
-      };
-
-      ws.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        
-        if (data.type === 'chunk') {
-          setResult(prev => prev + data.content);
-          scrollToBottom();
-        } else if (data.type === 'final') {
-          if (data.success) {
-            toast({
-              title: '分析完成',
-              description: '论文分析已完成',
-            });
-          }
-          setIsLoading(false);
-          ws.close();
-        } else if (data.type === 'error') {
-          toast({
-            variant: 'destructive',
-            title: '分析失败',
-            description: data.message,
-          });
-          setIsLoading(false);
-          ws.close();
-        }
-      };
-
-      ws.onerror = (error) => {
-        toast({
-          variant: 'destructive',
-          title: '连接错误',
-          description: '与服务器连接失败，请稍后重试',
-        });
-        setIsLoading(false);
-      };
-
-      ws.onclose = () => {
-        setSocket(null);
-      };
-
-    } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: '分析失败',
-        description: error.message,
-      });
-      setIsLoading(false);
-    }
-  };
-
+  }, [historyItem]);
+  
   // 滚动到结果底部
   const scrollToBottom = () => {
     if (resultRef.current) {
       resultRef.current.scrollTop = resultRef.current.scrollHeight;
     }
   };
-
+  
   // 取消分析
   const handleCancel = () => {
     if (socket) {
       socket.close();
       setSocket(null);
     }
-    setIsLoading(false);
+    setIsAnalyzing(false);
   };
-
-  // 清除当前结果，开始新分析
-  const handleStartNewAnalysis = () => {
-    setIsFromHistory(false);
+  
+  // 返回输入界面
+  const handleBackToInput = () => {
+    setShowResult(false);
     setResult('');
+    setIsFromHistory(false);
   };
-
-  return (
-    <div className="flex flex-col space-y-8">
-      <section>
-        <h1 className="text-3xl font-bold mb-6 text-gray-900">论文分析</h1>
+  
+  // 下载结果
+  const handleDownloadResult = () => {
+    if (!result) return;
+    
+    const blob = new Blob([result], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `论文分析_${new Date().toISOString().slice(0, 10)}.md`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+  
+  // 处理表单提交
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError(null);
+    
+    if (activeTab === 'upload' && !file) {
+      setError('请选择PDF文件');
+      return;
+    }
+    
+    if (activeTab === 'url' && !url) {
+      setError('请输入论文URL');
+      return;
+    }
+    
+    if (!selectedPrompt) {
+      setError('请选择分析模板');
+      return;
+    }
+    
+    // 清除之前的状态
+    setResult('');
+    setIsAnalyzing(true);
+    setShowResult(true);
+    
+    try {
+      if (activeTab === 'upload') {
+        // 处理文件上传
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('prompt_name', selectedPrompt);
         
-        {isFromHistory && (
-          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-md">
-            <div className="flex justify-between items-center">
-              <div>
-                <p className="font-semibold text-blue-800">已加载历史记录</p>
-                <p className="text-sm text-blue-600">使用模板: {selectedPrompt}</p>
-              </div>
-              <Button 
-                variant="outline" 
-                onClick={handleStartNewAnalysis}
-                className="text-blue-600 hover:text-blue-800"
-              >
-                开始新分析
-              </Button>
-            </div>
-          </div>
-        )}
+        // 创建WebSocket连接
+        const ws = new WebSocket(`ws://${API_BASE_URL.replace(/^https?:\/\//, '')}/ws/analyze_file/${clientId}`);
+        setSocket(ws);
         
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor="url">论文URL</Label>
-            <Input
-              id="url"
-              type="text"
-              placeholder="输入arXiv或其他论文URL (例如: https://arxiv.org/pdf/2305.12002)"
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-              disabled={isLoading || isFromHistory}
-              className="w-full"
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="prompt">分析模板</Label>
-            <Select
-              value={selectedPrompt}
-              onValueChange={setSelectedPrompt}
-              disabled={isLoading || Object.keys(prompts).length === 0 || isFromHistory}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="选择分析模板" />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.entries(prompts).map(([key, description]) => (
-                  <SelectItem key={key} value={key}>
-                    {key} - {description}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          
-          <div className="flex space-x-4">
-            {isLoading ? (
-              <Button type="button" variant="destructive" onClick={handleCancel}>
-                取消分析
-              </Button>
-            ) : !isFromHistory ? (
-              <Button type="submit" disabled={isLoading || !url || !selectedPrompt}>
-                开始分析
-              </Button>
-            ) : null}
-          </div>
-        </form>
-      </section>
+        ws.onopen = () => {
+          // 上传文件
+          axios.post(`${API_BASE_URL}/upload`, formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+              'X-Client-ID': clientId
+            }
+          }).catch(error => {
+            console.error('上传失败', error);
+            setIsAnalyzing(false);
+            setError('文件上传失败，请重试');
+            ws.close();
+          });
+        };
+        
+        setupWebSocketHandlers(ws);
+      } else {
+        // 处理URL分析
+        const ws = new WebSocket(`ws://${API_BASE_URL.replace(/^https?:\/\//, '')}/ws/analyze/${clientId}`);
+        setSocket(ws);
+        
+        ws.onopen = () => {
+          // 发送分析请求
+          ws.send(JSON.stringify({
+            url: url,
+            prompt_name: selectedPrompt,
+          }));
+        };
+        
+        setupWebSocketHandlers(ws);
+      }
+    } catch (error) {
+      console.error('分析失败', error);
+      setIsAnalyzing(false);
+      setError('连接服务器失败，请检查网络连接');
+    }
+  };
+  
+  const setupWebSocketHandlers = (ws) => {
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
       
-      <section className="border rounded-lg p-4 bg-white min-h-[500px]">
-        <Tabs defaultValue="preview">
-          <TabsList className="mb-4">
-            <TabsTrigger value="preview">预览</TabsTrigger>
-            <TabsTrigger value="markdown">Markdown</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="preview" className="h-[500px]">
-            <div 
-              ref={resultRef}
-              className="prose prose-sm max-w-none h-full overflow-y-auto px-4 py-2 bg-white rounded border"
-            >
-              {isLoading && !result && (
-                <div className="flex flex-col items-center justify-center h-full text-gray-500">
-                  <p>正在分析论文，请稍候...</p>
-                  <div className="mt-4 animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                </div>
-              )}
-              
-              {!isLoading && !result && (
-                <div className="flex items-center justify-center h-full text-gray-500">
-                  <p>分析结果将显示在这里</p>
-                </div>
-              )}
-              
-              {result && (
-                <ReactMarkdown 
-                  rehypePlugins={[rehypeSanitize, rehypeRaw]}
-                >
-                  {result}
-                </ReactMarkdown>
-              )}
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="markdown" className="h-[500px]">
-            <div className="relative h-full">
-              <pre className="h-full overflow-y-auto p-4 bg-gray-100 rounded border font-mono text-sm">
-                {result || '# 分析结果将以Markdown格式显示在这里'}
-              </pre>
-            </div>
-          </TabsContent>
-        </Tabs>
-      </section>
+      if (data.type === 'chunk') {
+        setResult(prev => prev + data.content);
+        scrollToBottom();
+      } else if (data.type === 'final') {
+        if (data.success) {
+          console.log('分析完成');
+        }
+        setIsAnalyzing(false);
+        ws.close();
+      } else if (data.type === 'error') {
+        console.error('分析错误', data.message);
+        setIsAnalyzing(false);
+        setError(data.message || '分析过程中出现错误');
+        ws.close();
+      }
+    };
+    
+    ws.onerror = (error) => {
+      console.error('WebSocket错误', error);
+      setIsAnalyzing(false);
+      setError('连接中断，请重试');
+    };
+    
+    ws.onclose = () => {
+      setSocket(null);
+    };
+  };
+  
+  return (
+    <div className="min-h-screen flex flex-col w-full">
+      {/* 顶部区域 - 标题和描述 */}
+      <AnalyzeHeader />
+      
+      {/* 主要内容区域 */}
+      <div className="flex-grow bg-gray-50">
+        <div className="container mx-auto px-4 py-10">
+          <div className="max-w-5xl mx-auto">
+            <ErrorMessage error={error} />
+            
+            {!showResult ? (
+              <InputForm 
+                activeTab={activeTab}
+                setActiveTab={setActiveTab}
+                file={file}
+                setFile={setFile}
+                url={url}
+                setUrl={setUrl}
+                prompts={prompts}
+                selectedPrompt={selectedPrompt}
+                setSelectedPrompt={setSelectedPrompt}
+                fileInputRef={fileInputRef}
+                isAnalyzing={isAnalyzing}
+                handleSubmit={handleSubmit}
+              />
+            ) : (
+              <ResultViewer 
+                isFromHistory={isFromHistory}
+                isAnalyzing={isAnalyzing}
+                resultRef={resultRef}
+                result={result}
+                resultTab={resultTab}
+                setResultTab={setResultTab}
+                handleBackToInput={handleBackToInput}
+                handleCancel={handleCancel}
+                handleDownloadResult={handleDownloadResult}
+              />
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
