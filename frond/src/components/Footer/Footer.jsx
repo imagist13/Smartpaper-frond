@@ -1,5 +1,5 @@
 import React from "react";
-import Logo from "../../assets/book.png";
+import Logo from "../../assets/paper_samples/logo.png";
 import { FaPhone } from "react-icons/fa6";
 import { LuMessageSquare } from "react-icons/lu";
 import { motion } from "framer-motion";
@@ -18,8 +18,8 @@ const Footer = () => {
           {/* Company info section */}
           <div className="space-y-4 font-semibold">
             <div className="flex items-center space-x-3">
-              <img src={Logo} alt="" className="w-6" />
-              <p className="text-xl font-semibold">SmartPaper</p>
+              <img src={Logo} alt="SmartPaper Logo" className="w-8 h-8 object-contain" />
+              <p className="text-xl font-semibold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">SmartPaper</p>
             </div>
             <p>中国，北京</p>
             <p>© 2024 SmartPaper All rights reserved</p>
