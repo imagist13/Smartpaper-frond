@@ -3,9 +3,47 @@
 @tailwind utilities;
 
 @layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  }
+  
+  /* 改善全局文本溢出处理 */
+  * {
+    box-sizing: border-box;
+  }
+  
   body {
+    overflow-wrap: break-word;
+    word-wrap: break-word;
     @apply bg-gray-50 text-gray-900 font-sans;
   }
+  
+  /* 表格溢出处理 */
+  table {
+    table-layout: auto;
+    width: 100%;
+    max-width: 100%;
+  }
+  
+  /* 代码块溢出处理 */
+  pre, code {
+    white-space: pre-wrap;
+    word-break: break-all;
+    max-width: 100%;
+  }
+  
+  /* 链接溢出处理 */
+  a {
+    word-break: break-all;
+  }
+  
+  /* 图片溢出处理 */
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+  
   h1, h2, h3, h4, h5, h6 {
     @apply font-medium tracking-tight;
   }
@@ -162,6 +200,36 @@
   .prose-custom {
     @apply prose-headings:text-purple-900 prose-h1:border-b prose-h1:pb-2 prose-h1:border-gray-200 prose-a:text-blue-600 prose-strong:text-purple-700 prose-code:text-purple-800 prose-code:bg-purple-50 prose-code:px-1 prose-code:py-0.5 prose-code:rounded;
   }
+  
+  /* 响应式卡片 */
+  .responsive-card {
+    @apply p-3 sm:p-6 rounded-lg sm:rounded-xl shadow-sm;
+  }
+  
+  /* 响应式布局容器 */
+  .layout-container {
+    @apply flex flex-col sm:flex-row w-full;
+  }
+  
+  /* 响应式文本尺寸 */
+  .responsive-text {
+    @apply text-sm sm:text-base lg:text-lg;
+  }
+  
+  /* 响应式填充 */
+  .responsive-padding {
+    @apply px-3 py-2 sm:px-5 sm:py-3 md:px-6 md:py-4;
+  }
+  
+  /* 响应式表格容器 */
+  .table-container {
+    @apply w-full overflow-x-auto;
+  }
+  
+  /* 响应式图片 */
+  .responsive-image {
+    @apply max-w-full h-auto rounded;
+  }
 }
 
 /* 响应式工具 */
@@ -172,5 +240,108 @@
   
   .text-shadow-lg {
     text-shadow: 0 4px 8px rgba(0,0,0,0.12), 0 2px 4px rgba(0,0,0,0.08);
+  }
+  
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+  }
+}
+
+/* 添加xs断点支持 */
+@media (min-width: 475px) {
+  .xs\:inline {
+    display: inline;
+  }
+  
+  .xs\:hidden {
+    display: none;
+  }
+  
+  .xs\:flex {
+    display: flex;
+  }
+  
+  .xs\:block {
+    display: block;
+  }
+  
+  .xs\:w-auto {
+    width: auto;
+  }
+  
+  .xs\:px-4 {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  .xs\:py-2 {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+  
+  .xs\:text-base {
+    font-size: 1rem;
+    line-height: 1.5rem;
+  }
+}
+
+/* 添加自定义断点类 */
+@layer utilities {
+  /* 超小屏幕 */
+  @media (max-width: 479px) {
+    .xs\:hidden {
+      display: none;
+    }
+    .xs\:block {
+      display: block;
+    }
+    .xs\:flex {
+      display: flex;
+    }
+    .xs\:text-xs {
+      font-size: 0.75rem;
+      line-height: 1rem;
+    }
+    .xs\:break-all {
+      word-break: break-all;
+    }
+    .xs\:break-words {
+      overflow-wrap: break-word;
+    }
+    .xs\:p-2 {
+      padding: 0.5rem;
+    }
+  }
+  
+  /* 强制换行相关类 */
+  .break-anywhere {
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
+  
+  .no-wrap {
+    white-space: nowrap;
+  }
+  
+  .trim-text {
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  
+  /* 改善响应式行为 */
+  @media (max-width: 640px) {
+    .table-responsive {
+      display: block;
+      width: 100%;
+      overflow-x: auto;
+    }
+    
+    .text-wrap-sm {
+      word-break: break-all;
+      white-space: normal;
+    }
   }
 }
