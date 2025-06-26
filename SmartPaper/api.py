@@ -21,6 +21,9 @@ import asyncio
 import json
 from loguru import logger
 import uvicorn
+# 添加文件上传所需的导入
+from fastapi import UploadFile, File, Form, Depends
+import shutil
 
 # 导入SmartPaper核心功能
 from src.core.smart_paper_core import SmartPaper
@@ -302,6 +305,118 @@ async def process_paper_url_stream_async(self, url, prompt_name=None, descriptio
 
 # 动态添加异步方法到SmartPaper类
 SmartPaper.process_paper_url_stream_async = process_paper_url_stream_async
+
+@app.post("/upload")
+async def upload_file(file: UploadFile = File(...), prompt_name: str = Form(...), client_id: str = Form(None)):
+    """上传PDF文件并保存到临时目录"""
+    try:
+        # 创建临时目录
+        temp_dir = "temp"
+        os.makedirs(temp_dir, exist_ok=True)
+        
+        # 生成文件名
+        file_name = file.filename
+        file_path = os.path.join(temp_dir, file_name)
+        
+        # 保存文件
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+        
+        # 保存提示词模板信息到临时文件，以便WebSocket处理时使用
+        prompt_info_file = os.path.join(temp_dir, f"{client_id}_prompt_info.json")
+        with open(prompt_info_file, "w", encoding="utf-8") as f:
+            json.dump({"prompt_name": prompt_name}, f)
+        
+        return {
+            "success": True,
+            "file_path": file_path,
+            "file_name": file_name,
+            "prompt_name": prompt_name,
+            "client_id": client_id
+        }
+    except Exception as e:
+        logger.error(f"文件上传失败: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.websocket("/ws/analyze_file/{client_id}")
+async def websocket_analyze_file(websocket: WebSocket, client_id: str):
+    """WebSocket接口 - 用于流式分析上传的文件"""
+    await manager.connect(websocket, client_id)
+    try:
+        # 查找临时目录中的文件
+        temp_dir = "temp"
+        files = glob.glob(os.path.join(temp_dir, "*.pdf"))
+        
+        if not files:
+            await websocket.send_json({
+                "type": "error",
+                "message": "未找到上传的文件"
+            })
+            return
+        
+        # 使用最新上传的文件
+        file_path = max(files, key=os.path.getmtime)
+        file_name = os.path.basename(file_path)
+        
+        # 获取提示词模板信息
+        prompt_name = "yuanbao"  # 默认值
+        prompt_info_file = os.path.join(temp_dir, f"{client_id}_prompt_info.json")
+        if os.path.exists(prompt_info_file):
+            try:
+                with open(prompt_info_file, "r", encoding="utf-8") as f:
+                    prompt_info = json.load(f)
+                    prompt_name = prompt_info.get("prompt_name", prompt_name)
+                    logger.info(f"使用提示词模板: {prompt_name}")
+            except Exception as e:
+                logger.error(f"读取提示词信息失败: {str(e)}")
+        
+        # 初始化SmartPaper
+        reader = SmartPaper(output_format="markdown")
+        
+        # 创建输出目录
+        output_dir = "outputs"
+        os.makedirs(output_dir, exist_ok=True)
+        
+        # 生成输出文件路径
+        output_file = os.path.join(
+            output_dir, 
+            f'analysis_{client_id}_{file_name}_prompt_{prompt_name}.md'
+        )
+        
+        # 以写入模式打开文件，并发送流式结果
+        with open(output_file, "w", encoding="utf-8") as f:
+            full_content = ""
+            # 使用本地文件路径处理
+            for chunk in reader.process_paper_local(file_path, prompt_name=prompt_name):
+                full_content += chunk
+                f.write(chunk)
+                # 发送到WebSocket
+                await websocket.send_json({
+                    "type": "chunk", 
+                    "content": chunk
+                })
+                
+            # 发送完成信号
+            await websocket.send_json({
+                "type": "final",
+                "success": True,
+                "file_path": output_file,
+                "full_content": full_content
+            })
+            
+    except WebSocketDisconnect:
+        manager.disconnect(client_id)
+    except Exception as e:
+        logger.error(f"WebSocket处理失败: {str(e)}")
+        try:
+            await websocket.send_json({
+                "type": "error",
+                "message": str(e)
+            })
+        except:
+            pass
+        finally:
+            manager.disconnect(client_id)
 
 def start_api():
     """启动API服务"""

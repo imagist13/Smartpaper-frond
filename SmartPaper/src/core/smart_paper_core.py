@@ -314,3 +314,42 @@ class SmartPaper:
     def reset_request_count(self):
         """重置所有组件的请求计数器"""
         self.processor.reset_request_count()
+
+    def process_paper_local(
+        self,
+        file_path: str,
+        prompt_name: Optional[str] = None,
+    ) -> Generator[str, None, None]:
+        """处理本地PDF文件并以流式方式返回结果
+
+        Args:
+            file_path (str): 本地PDF文件路径
+            prompt_name (Optional[str], optional): 提示词名称
+
+        Yields:
+            Generator[str, None, None]: 流式返回处理结果
+        """
+        try:
+            # 转换PDF，使用配置中指定的转换器
+            converter_name = self.config.get("document_converter", {}).get(
+                "converter_name", "markitdown"
+            )
+            
+            logger.info(f"开始处理本地PDF文件: {file_path}")
+            result = convert_to_text(file_path, config=self.config, converter_name=converter_name)
+            logger.info(f"PDF转换完成，使用转换器: {converter_name}")
+
+            # 获取PDF内容
+            text_content = result["text_content"]
+            metadata = result["metadata"]
+            
+            # 使用提示词模式流式处理
+            for chunk in self.processor.process_stream_with_content(text_content, prompt_name):
+                yield chunk
+                
+            logger.info(f"分析完成")
+            
+        except Exception as e:
+            error_msg = f"处理本地PDF文件失败: {str(e)}"
+            logger.error(error_msg)
+            yield f"错误: {error_msg}"

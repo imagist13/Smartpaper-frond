@@ -279,8 +279,9 @@ const ResultViewer = ({
       transition={{ duration: 0.3 }}
       className="w-full h-full flex flex-col"
     >
-      {/* 自定义CSS，优先处理溢出问题 */}
-      <style jsx global>{`
+      {/* 自定义CSS，修复为普通style标签 */}
+      <style>
+        {`
         /* 处理长文本和表格溢出 */
         .markdown-custom {
           max-width: 100%;
@@ -382,7 +383,8 @@ const ResultViewer = ({
           background: linear-gradient(to right, #eff6ff, #dbeafe);
           box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.1), 0 2px 4px -1px rgba(59, 130, 246, 0.06);
         }
-      `}</style>
+        `}
+      </style>
       
       {/* 结果内容区域 */}
       <Tabs defaultValue="preview" className="w-full h-full flex flex-col" value={resultTab} onValueChange={setResultTab}>

@@ -1,41 +1,55 @@
 import React from 'react';
-import { FaChevronDown, FaCheckCircle } from 'react-icons/fa';
+import { FaAngleDown } from 'react-icons/fa';
 
-const PromptSelector = ({ prompts, selectedPrompt, setSelectedPrompt }) => {
+/**
+ * 提示词选择器组件
+ * @param {Object} props - 组件属性
+ * @param {Object} props.prompts - 可用的提示词模板对象
+ * @param {string} props.selectedPrompt - 当前选中的提示词模板
+ * @param {Function} props.onChange - 选择变更回调函数
+ */
+const PromptSelector = ({ prompts, selectedPrompt, onChange }) => {
+  if (!prompts || Object.keys(prompts).length === 0) {
+    return (
+      <div className="bg-gray-100 rounded-md p-3 text-sm text-gray-500">
+        正在加载分析模板...
+      </div>
+    );
+  }
+
+  const promptOptions = Object.keys(prompts);
+  
+  // 提示模板描述
+  const promptDescriptions = {
+    coolpapaers: "适合一般学术论文的全面分析，包含背景、方法、结果、价值等",
+    summary: "生成简洁的论文摘要，快速了解论文核心内容",
+    yuanbao: "深入分析论文创新点与贡献，关注技术亮点",
+    methodology: "专注于研究方法与实验设计分析",
+    results: "重点分析实验结果与数据解读"
+  };
+
   return (
-    <div>
-      <div className="relative">
-        <select
-          id="prompt-select"
-          className="w-full px-3 sm:px-5 py-3 sm:py-4 appearance-none border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm sm:text-base bg-white pr-10"
-          value={selectedPrompt}
-          onChange={(e) => setSelectedPrompt(e.target.value)}
-        >
-          <option value="" disabled>选择分析模板</option>
-          {Object.entries(prompts).map(([key, description]) => (
-            <option key={key} value={key}>{key}</option>
-          ))}
-        </select>
-        <div className="absolute inset-y-0 right-0 flex items-center pr-3 sm:pr-4 pointer-events-none">
-          <FaChevronDown className="text-gray-500" />
-        </div>
+    <div className="relative">
+      <select
+        value={selectedPrompt}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full appearance-none bg-white border border-gray-300 rounded-md p-2.5 pl-4 pr-10 text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+      >
+        {promptOptions.map((prompt) => (
+          <option key={prompt} value={prompt}>
+            {prompts[prompt] || prompt}
+          </option>
+        ))}
+      </select>
+      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+        <FaAngleDown />
       </div>
       
-      {selectedPrompt && prompts[selectedPrompt] && (
-        <div className="mt-3 sm:mt-4 bg-white p-3 sm:p-4 rounded-lg border border-indigo-100 shadow-sm">
-          <div className="flex items-start">
-            <FaCheckCircle className="text-indigo-500 mt-0.5 mr-2 sm:mr-3 flex-shrink-0 text-sm sm:text-base" />
-            <div>
-              <h4 className="font-medium text-gray-800 text-sm sm:text-base">{selectedPrompt}</h4>
-              <p className="mt-1 text-xs sm:text-sm text-gray-600">{prompts[selectedPrompt]}</p>
-            </div>
-          </div>
+      {selectedPrompt && promptDescriptions[selectedPrompt] && (
+        <div className="mt-2 text-sm text-gray-600">
+          {promptDescriptions[selectedPrompt]}
         </div>
       )}
-      
-      <p className="mt-2 sm:mt-3 text-xs sm:text-sm text-gray-500">
-        选择适合您需求的分析模板，不同模板关注论文的不同方面
-      </p>
     </div>
   );
 };
