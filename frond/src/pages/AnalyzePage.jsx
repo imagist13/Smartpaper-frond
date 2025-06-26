@@ -2,12 +2,30 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
+<<<<<<< HEAD
 import { 
   FaChevronRight, FaChevronLeft, FaArrowLeft, FaDownload, 
   FaSpinner, FaSearch, FaCode, FaFileAlt, FaShare, 
   FaEye, FaMarkdown, FaBookmark, FaList, FaPrint,
   FaHome, FaHistory, FaInfoCircle, FaExpand, FaSync,
   FaFilePdf
+=======
+import { motion } from 'framer-motion';
+import { 
+  FaSpinner, 
+  FaDownload, 
+  FaArrowLeft, 
+  FaChevronRight, 
+  FaChevronLeft, 
+  FaEllipsisV,
+  FaFileUpload,
+  FaLink,
+  FaFileAlt,
+  FaCode,
+  FaCheckCircle,
+  FaTimesCircle,
+  FaListUl
+>>>>>>> 63483267648195cff784cdfe286eadeedbc2d1cd
 } from 'react-icons/fa';
 
 // 组件导入
@@ -44,6 +62,7 @@ const AnalyzePage = () => {
   const [isFromHistory, setIsFromHistory] = useState(false);
   const [error, setError] = useState(null);
   
+<<<<<<< HEAD
   // 新增的状态
   const [leftSidebarOpen, setLeftSidebarOpen] = useState(true);
   const [rightSidebarOpen, setRightSidebarOpen] = useState(true);
@@ -55,6 +74,8 @@ const AnalyzePage = () => {
   const [showFullSummary, setShowFullSummary] = useState(false);
   const [analysisDate] = useState(new Date().toLocaleDateString());
   
+=======
+>>>>>>> 63483267648195cff784cdfe286eadeedbc2d1cd
   // refs
   const resultRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -106,6 +127,7 @@ const AnalyzePage = () => {
     }
   }, [historyItem]);
   
+<<<<<<< HEAD
   // 提取文档大纲和元数据
   useEffect(() => {
     if (result) {
@@ -140,18 +162,12 @@ const AnalyzePage = () => {
     }
   }, [result]);
   
+=======
+>>>>>>> 63483267648195cff784cdfe286eadeedbc2d1cd
   // 滚动到结果底部
   const scrollToBottom = () => {
     if (resultRef.current) {
       resultRef.current.scrollTop = resultRef.current.scrollHeight;
-    }
-  };
-  
-  // 滚动到指定标题
-  const scrollToHeading = (id) => {
-    const element = document.getElementById(id);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
     }
   };
   
@@ -282,8 +298,12 @@ const AnalyzePage = () => {
         setIsAnalyzing(false);
         ws.close();
       } else if (data.type === 'error') {
+<<<<<<< HEAD
         console.error('分析错误', data.message);
         setError(`分析错误: ${data.message}`);
+=======
+        setError(data.message || '分析过程中出错');
+>>>>>>> 63483267648195cff784cdfe286eadeedbc2d1cd
         setIsAnalyzing(false);
         ws.close();
       }
@@ -292,15 +312,26 @@ const AnalyzePage = () => {
     ws.onclose = () => {
       console.log('WebSocket连接已关闭');
       setSocket(null);
+<<<<<<< HEAD
+=======
+      if (isAnalyzing) {
+        setIsAnalyzing(false);
+      }
+>>>>>>> 63483267648195cff784cdfe286eadeedbc2d1cd
     };
     
     ws.onerror = (error) => {
       console.error('WebSocket错误', error);
+<<<<<<< HEAD
       setError('WebSocket连接错误');
+=======
+      setError('连接错误，请重试');
+>>>>>>> 63483267648195cff784cdfe286eadeedbc2d1cd
       setIsAnalyzing(false);
     };
   };
   
+<<<<<<< HEAD
   // 侧边栏切换
   const toggleLeftSidebar = () => setLeftSidebarOpen(!leftSidebarOpen);
   const toggleRightSidebar = () => setRightSidebarOpen(!rightSidebarOpen);
@@ -577,6 +608,243 @@ const AnalyzePage = () => {
             </div>
           </div>
         </div>
+=======
+  // 文件上传处理
+  const handleFileChange = (e) => {
+    if (e.target.files.length > 0) {
+      const selectedFile = e.target.files[0];
+      if (selectedFile.type !== 'application/pdf') {
+        setError('请上传PDF文件');
+        setFile(null);
+        e.target.value = null;
+        return;
+      }
+      
+      if (selectedFile.size > 20 * 1024 * 1024) { // 20MB
+        setError('文件大小不能超过20MB');
+        setFile(null);
+        e.target.value = null;
+        return;
+      }
+      
+      setFile(selectedFile);
+      setError(null);
+    }
+  };
+  
+  // URL输入处理
+  const handleUrlChange = (e) => {
+    setUrl(e.target.value);
+    setError(null);
+  };
+  
+  // 切换分析模板
+  const handlePromptChange = (e) => {
+    setSelectedPrompt(e.target.value);
+  };
+  
+  // 清除文件
+  const handleClearFile = () => {
+    setFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+  
+  return (
+    <div className="max-w-full">
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold">论文分析</h1>
+        <p className="text-gray-500 mt-2">上传论文PDF或输入URL，选择分析模板，获取AI解析结果</p>
+      </div>
+    
+      <div className="flex flex-col lg:flex-row gap-6">
+        {/* 左侧栏：输入区域 */}
+        <div className="lg:w-2/5 bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
+          {/* 标签切换 */}
+          <div className="flex border-b border-gray-200 mb-6">
+            <button
+              className={`py-2 px-4 relative ${
+                activeTab === 'upload'
+                  ? 'text-indigo-600 font-medium'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+              onClick={() => setActiveTab('upload')}
+            >
+              <div className="flex items-center gap-2">
+                <FaFileUpload size={16} />
+                <span>上传PDF</span>
+              </div>
+              {activeTab === 'upload' && (
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600" />
+              )}
+            </button>
+            <button
+              className={`py-2 px-4 relative ${
+                activeTab === 'url'
+                  ? 'text-indigo-600 font-medium'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+              onClick={() => setActiveTab('url')}
+            >
+              <div className="flex items-center gap-2">
+                <FaLink size={16} />
+                <span>输入URL</span>
+              </div>
+              {activeTab === 'url' && (
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600" />
+              )}
+            </button>
+          </div>
+          
+          {/* 显示错误信息 */}
+          {error && (
+            <div className="mb-6 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm flex items-center">
+              <FaTimesCircle className="mr-2 flex-shrink-0" />
+              <span>{error}</span>
+            </div>
+          )}
+          
+          {/* 上传PDF表单 */}
+          {activeTab === 'upload' && (
+            <div className="space-y-6">
+              <div className="border-2 border-dashed border-gray-200 rounded-lg p-6 text-center bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileChange}
+                  className="hidden"
+                  accept=".pdf"
+                />
+                <div className="flex flex-col items-center justify-center">
+                  <FaFileAlt className="text-indigo-300 text-3xl mb-2" />
+                  {file ? (
+                    <div className="flex flex-col items-center">
+                      <span className="text-indigo-600 font-medium">{file.name}</span>
+                      <span className="text-xs text-gray-400 mt-1">{(file.size / (1024 * 1024)).toFixed(2)} MB</span>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleClearFile();
+                        }}
+                        className="mt-2 text-xs text-red-500 hover:text-red-700"
+                      >
+                        移除文件
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <p className="text-gray-600">点击或拖拽PDF文件到这里</p>
+                      <p className="text-xs text-gray-400 mt-1">支持PDF格式，大小不超过20MB</p>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+          
+          {/* URL输入表单 */}
+          {activeTab === 'url' && (
+            <div className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  论文URL
+                </label>
+                <div className="mt-1 relative">
+                  <input
+                    type="text"
+                    value={url}
+                    onChange={handleUrlChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    placeholder="输入arxiv.org或其他学术网站论文URL"
+                  />
+                  {url && (
+                    <button
+                      onClick={() => setUrl('')}
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                      <FaTimesCircle />
+                    </button>
+                  )}
+                </div>
+                <p className="mt-1 text-xs text-gray-500">例如: https://arxiv.org/abs/2303.08774</p>
+              </div>
+            </div>
+          )}
+          
+          {/* 分析模板选择 */}
+          <div className="my-6">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              分析模板
+            </label>
+            <select
+              value={selectedPrompt}
+              onChange={handlePromptChange}
+              className="w-full px-4 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            >
+              {Object.keys(prompts).map((key) => (
+                <option key={key} value={key}>
+                  {prompts[key]}
+                </option>
+              ))}
+            </select>
+          </div>
+          
+          {/* 提交按钮 */}
+          <div className="mt-8">
+            <button
+              onClick={handleSubmit}
+              disabled={isAnalyzing || (activeTab === 'upload' && !file) || (activeTab === 'url' && !url)}
+              className={`w-full py-3 px-4 flex items-center justify-center rounded-lg transition-all ${
+                isAnalyzing || (activeTab === 'upload' && !file) || (activeTab === 'url' && !url)
+                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                  : 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md hover:shadow-lg hover:from-indigo-700 hover:to-purple-700'
+              }`}
+            >
+              {isAnalyzing ? (
+                <>
+                  <FaSpinner className="animate-spin mr-2" />
+                  <span>分析中...</span>
+                </>
+              ) : (
+                <>
+                  <FaCode className="mr-2" />
+                  <span>开始分析</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* 右侧栏：结果预览区 */}
+        <div className="lg:w-3/5 bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden flex flex-col h-[70vh]">
+          {/* 结果预览区 */}
+          <div className="h-full">
+            <ResultViewer
+              isFromHistory={isFromHistory}
+              isAnalyzing={isAnalyzing}
+              resultRef={resultRef}
+              result={result}
+              resultTab={resultTab}
+              setResultTab={setResultTab}
+              handleDownloadResult={handleDownloadResult}
+            />
+          </div>
+        </div>
+      </div>
+      
+      {/* 底部操作按钮 - 仅在分析时显示 */}
+      {isAnalyzing && (
+        <div className="mt-6 flex justify-center">
+          <button
+            onClick={handleCancel}
+            className="px-6 py-2 border border-red-300 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors flex items-center"
+          >
+            <FaTimesCircle className="mr-2" />
+            取消分析
+          </button>
+        </div>
+>>>>>>> 63483267648195cff784cdfe286eadeedbc2d1cd
       )}
     </div>
   );
