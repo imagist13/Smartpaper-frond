@@ -116,7 +116,7 @@ export const uploadPdfFile = async (file, promptName, clientId) => {
  */
 export const createAnalysisWebSocket = (clientId, isFile = false) => {
   const endpoint = isFile ? 'ws/analyze_file' : 'ws/analyze';
-  const wsUrl = `ws://${API_BASE_URL.replace(/^https?:\/\//, '')}/${endpoint}/${clientId}`;
+  const wsUrl = `ws://localhost:8000/${endpoint}/${clientId}`;
   
   try {
     const socket = new WebSocket(wsUrl);

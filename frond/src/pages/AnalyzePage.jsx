@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { FaUpload, FaLink, FaFileAlt, FaChevronDown, FaChevronUp, FaDownload, FaShareAlt, FaBookmark, FaPrint } from 'react-icons/fa';
 import { IoMdSettings } from 'react-icons/io';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../components/ui/tabs';
+import { useLocation, useNavigate } from 'react-router-dom';
 import AnalyzeHeader from '../components/Analyze/AnalyzeHeader';
 import InputForm from '../components/Analyze/InputForm';
 import DocumentOutline from '../components/Analyze/DocumentOutline';
@@ -9,6 +10,8 @@ import PaperMetadata from '../components/Analyze/PaperMetadata';
 import MarkdownRenderer from '../components/Analyze/MarkdownRenderer';
 import { toast } from '../components/ui/use-toast';
 import { motion } from 'framer-motion';
+import { getPrompts, uploadPdfFile, createAnalysisWebSocket, getHistoryItem } from '../services/api';
+import { v4 as uuidv4 } from 'uuid';
 
 // 示例分析结果文本 - 用于模拟流式输出
 const EXAMPLE_RESULT = `# 深度学习在自然语言处理中的应用
@@ -101,6 +104,11 @@ Transformer架构通过使用自注意力机制处理序列数据，已成为大
 5. Brown, T., Mann, B., Ryder, N., et al. (2020). "Language models are few-shot learners". In Advances in Neural Information Processing Systems.`;
 
 const AnalyzePage = () => {
+  // 路由相关
+  const location = useLocation();
+  const navigate = useNavigate();
+  const historyItem = location.state?.historyItem;
+  
   // 基础状态
   const [file, setFile] = useState(null);
   const [url, setUrl] = useState('');
@@ -126,6 +134,81 @@ const AnalyzePage = () => {
     { id: 'yuanbao', name: '详细解读' }
   ]);
   const [selectedPrompt, setSelectedPrompt] = useState(prompts[0]);
+  
+  // WebSocket 客户端ID
+  const [clientId] = useState(uuidv4());
+  const wsRef = useRef(null);
+
+  // 如果从历史记录页面跳转来，直接显示结果
+  useEffect(() => {
+    const loadHistoryItem = async () => {
+      if (historyItem) {
+        setShowInput(false);
+        setIsAnalyzing(true);
+        
+        try {
+          // 获取历史记录内容
+          const content = await getHistoryItem(historyItem.id);
+          setResult(content);
+          
+          // 如果有历史记录的prompt信息，设置为当前的prompt
+          if (historyItem.promptName) {
+            const matchedPrompt = prompts.find(p => p.id === historyItem.promptName);
+            if (matchedPrompt) {
+              setSelectedPrompt(matchedPrompt);
+            }
+          }
+          
+          // 如果有URL，设置URL
+          if (historyItem.url) {
+            setUrl(historyItem.url);
+          }
+          
+        } catch (error) {
+          console.error('加载历史记录失败:', error);
+          toast({
+            title: "加载失败",
+            description: "无法加载历史记录，请返回重试",
+            variant: "destructive",
+          });
+        } finally {
+          setIsAnalyzing(false);
+        }
+      }
+    };
+    
+    loadHistoryItem();
+  }, [historyItem]);
+
+  // 获取提示词模板
+  useEffect(() => {
+    const fetchPrompts = async () => {
+      try {
+        const response = await getPrompts();
+        if (response && response.prompts) {
+          // 转换提示词对象为数组格式
+          const promptsArray = Object.entries(response.prompts).map(([id, name]) => ({
+            id,
+            name
+          }));
+          
+          if (promptsArray.length > 0) {
+            setPrompts(promptsArray);
+            setSelectedPrompt(promptsArray[0]);
+          }
+        }
+      } catch (error) {
+        console.error('获取提示词模板失败:', error);
+        toast({
+          title: "加载失败",
+          description: "无法获取分析模板，请检查服务器连接",
+          variant: "destructive",
+        });
+      }
+    };
+    
+    fetchPrompts();
+  }, []);
 
   // 当有结果时解析文档大纲
   useEffect(() => {
@@ -142,35 +225,37 @@ const AnalyzePage = () => {
     }
   }, [result]);
 
-  // 流式输出效果
-  const streamResult = (fullText) => {
-    // 将结果分成段落
-    const paragraphs = fullText.split('\n\n');
-    let currentText = '';
-    let paraIndex = 0;
-    
-    setIsStreaming(true);
-    
-    // 定义流式输出函数
-    const streamNextParagraph = () => {
-      if (paraIndex < paragraphs.length) {
-        // 添加下一个段落
-        currentText += (paraIndex > 0 ? '\n\n' : '') + paragraphs[paraIndex];
-        setResult(currentText);
-        paraIndex++;
-        
-        // 继续流式输出
-        const delay = Math.max(100, Math.min(500, paragraphs[paraIndex-1].length * 5));
-        setTimeout(streamNextParagraph, delay);
-      } else {
-        // 流式输出完成
+  // 处理WebSocket消息接收
+  const handleWebSocketMessage = (event) => {
+    try {
+      const data = JSON.parse(event.data);
+      
+      // 处理分析结果消息
+      if (data.type === 'chunk') {
+        setResult((prevResult) => prevResult + data.content);
+      } 
+      // 处理完成消息
+      else if (data.type === 'final') {
         setIsStreaming(false);
         setIsAnalyzing(false);
+        toast({
+          title: "分析完成",
+          description: "论文解析已完成，您可以查看分析结果"
+        });
+      } 
+      // 处理错误消息
+      else if (data.type === 'error') {
+        setIsStreaming(false);
+        setIsAnalyzing(false);
+        toast({
+          title: "分析失败",
+          description: data.message || "论文分析过程中出现错误",
+          variant: "destructive",
+        });
       }
-    };
-    
-    // 开始流式输出
-    streamNextParagraph();
+    } catch (error) {
+      console.error('处理WebSocket消息失败:', error);
+    }
   };
 
   // 提交处理函数
@@ -185,15 +270,83 @@ const AnalyzePage = () => {
     }
     
     setIsAnalyzing(true);
+    setIsStreaming(true);
     setResult('');
     setShowInput(false);
     
-    // 模拟API调用
-    setTimeout(() => {
-      // 流式输出分析结果
-      streamResult(EXAMPLE_RESULT);
-    }, 2000);
+    try {
+      // 创建WebSocket连接
+      const isFileUpload = submittedTab === 'upload';
+      const socket = createAnalysisWebSocket(clientId, isFileUpload);
+      wsRef.current = socket;
+      
+      // 设置WebSocket事件处理程序
+      socket.onopen = async () => {
+        if (isFileUpload) {
+          // 文件上传采用REST API
+          try {
+            await uploadPdfFile(file, selectedPrompt.id, clientId);
+            // 文件上传后，WebSocket会自动接收分析结果
+          } catch (uploadError) {
+            console.error('文件上传失败:', uploadError);
+            setIsStreaming(false);
+            setIsAnalyzing(false);
+            setShowInput(true);
+            toast({
+              title: "上传失败",
+              description: "PDF文件上传失败，请重试",
+              variant: "destructive",
+            });
+          }
+        } else {
+          // URL分析直接通过WebSocket发送请求
+          const request = JSON.stringify({
+            url: url,
+            prompt_name: selectedPrompt.id
+          });
+          socket.send(request);
+        }
+      };
+      
+      socket.onmessage = handleWebSocketMessage;
+      
+      socket.onerror = (error) => {
+        console.error('WebSocket错误:', error);
+        setIsStreaming(false);
+        setIsAnalyzing(false);
+        toast({
+          title: "连接错误",
+          description: "服务器连接失败，请稍后重试",
+          variant: "destructive",
+        });
+      };
+      
+      socket.onclose = () => {
+        // 连接关闭，但不一定是错误
+        console.log('WebSocket连接已关闭');
+      };
+      
+    } catch (error) {
+      console.error('创建WebSocket连接失败:', error);
+      setIsStreaming(false);
+      setIsAnalyzing(false);
+      setShowInput(true);
+      toast({
+        title: "连接错误",
+        description: "无法连接到服务器，请检查网络连接",
+        variant: "destructive",
+      });
+    }
   };
+  
+  // 关闭WebSocket连接
+  useEffect(() => {
+    return () => {
+      if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+        wsRef.current.close();
+      }
+    };
+  }, []);
   
   // 重置分析，返回输入界面
   const handleReset = () => {
@@ -201,6 +354,11 @@ const AnalyzePage = () => {
     setFile(null);
     setUrl('');
     setResult('');
+    
+    // 如果是从历史记录页面来的，返回历史记录页面
+    if (historyItem) {
+      navigate('/history');
+    }
   };
 
   // 下载分析结果
@@ -264,7 +422,13 @@ const AnalyzePage = () => {
                   </div>
                   
                   <h1 className="text-lg font-medium text-gray-900 truncate max-w-md">
-                    {file ? file.name : url ? new URL(url).pathname.split('/').pop() : "论文分析结果"}
+                    {file ? file.name : url ? (() => {
+                      try {
+                        return new URL(url).pathname.split('/').pop();
+                      } catch (e) {
+                        return url;
+                      }
+                    })() : "论文分析结果"}
                   </h1>
                 </div>
                 

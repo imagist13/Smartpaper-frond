@@ -33,7 +33,16 @@ const History = () => {
   
   // 查看历史记录详情
   const handleViewDetail = (item) => {
-    navigate('/analyze', { state: { historyItem: item } });
+    // 确保有正确的id和必要信息传递给分析页面
+    const historyItem = {
+      id: item.id,
+      title: item.title,
+      url: item.url,
+      promptName: item.promptName,
+      file_path: item.file_path,
+      date: item.date
+    };
+    navigate('/analyze', { state: { historyItem } });
   };
   
   // 下载历史记录
