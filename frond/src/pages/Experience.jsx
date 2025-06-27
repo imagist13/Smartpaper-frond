@@ -1,10 +1,6 @@
-<<<<<<< HEAD
-import React from "react";
-=======
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { FaPaperPlane, FaStar, FaRegStar, FaSmile, FaMeh, FaFrown } from "react-icons/fa";
->>>>>>> 63483267648195cff784cdfe286eadeedbc2d1cd
 
 const Experience = () => {
   const [rating, setRating] = useState(0);
@@ -39,29 +35,6 @@ const Experience = () => {
         </p>
       </motion.div>
       
-<<<<<<< HEAD
-      <div className="container mx-auto px-4 py-16">
-        <h1 className="text-3xl font-bold text-center mb-12">体验中心</h1>
-        
-        <div className="max-w-3xl mx-auto">
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-xl font-semibold mb-4">SmartPaper 功能体验</h2>
-            <p className="text-gray-700 mb-6">
-              我们正在为您准备更多的体验功能，敬请期待！
-            </p>
-            
-            <div className="flex justify-center">
-              <a 
-                href="/analyze" 
-                className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-md font-medium"
-              >
-                立即体验论文分析
-              </a>
-            </div>
-          </div>
-        </div>
-      </div>
-=======
       {submitted ? (
         <motion.div 
           initial={{ opacity: 0, scale: 0.9 }}
@@ -177,7 +150,6 @@ const Experience = () => {
           </form>
         </motion.div>
       )}
->>>>>>> 63483267648195cff784cdfe286eadeedbc2d1cd
     </div>
   );
 };

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { FaHome, FaFileAlt, FaHistory, FaInfoCircle } from 'react-icons/fa';
+import { FaHome, FaFileAlt, FaHistory, FaInfoCircle, FaRobot } from 'react-icons/fa';
 
 /**
  * 应用程序头部导航组件
@@ -13,7 +13,9 @@ const Header = () => {
     <header className="bg-white border-b border-gray-200">
       <div className="container mx-auto px-4 py-2 flex items-center">
         <Link to="/" className="flex items-center">
-          <img src="/logo.png" alt="SmartPaper" className="h-8 w-8 mr-2" />
+          <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center mr-3">
+            <FaRobot className="text-white" />
+          </div>
           <div>
             <h1 className="text-indigo-600 font-bold text-xl">SmartPaper</h1>
             <p className="text-gray-500 text-xs">智能论文分析</p>
@@ -43,10 +45,10 @@ const Header = () => {
           </Link>
           
           <Link 
-            to="/about" 
-            className={`flex items-center ${path === '/about' ? 'text-indigo-600' : 'text-gray-700 hover:text-indigo-600'}`}
+            to="/experience" 
+            className={`flex items-center ${path === '/experience' ? 'text-indigo-600' : 'text-gray-700 hover:text-indigo-600'}`}
           >
-            <FaInfoCircle className="mr-1.5" /> 关于我们
+            <FaInfoCircle className="mr-1.5" /> 使用体验
           </Link>
         </div>
         
