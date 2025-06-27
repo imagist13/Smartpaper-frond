@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react"
 
 const TOAST_LIMIT = 5
-const TOAST_REMOVE_DELAY = 1000
+const TOAST_REMOVE_DELAY = 5000 // 5 seconds auto-dismiss
 
 let count = 0
 
@@ -39,9 +39,26 @@ function remove(toastId) {
   }
 }
 
+// Determine toast variant based on type
+function getVariantFromType(type) {
+  switch (type) {
+    case 'success':
+      return 'success'
+    case 'error':
+      return 'destructive'
+    case 'warning':
+      return 'warning'
+    case 'info':
+      return 'info'
+    default:
+      return 'default'
+  }
+}
+
 // Exported toast function that can be imported directly
 export function toast({ ...props }) {
   const id = genId()
+  const variant = props.variant || getVariantFromType(props.type)
 
   if (toastState.setToasts) {
     toastState.setToasts((toasts) => {
@@ -49,6 +66,7 @@ export function toast({ ...props }) {
         {
           ...props,
           id,
+          variant,
           open: true,
         },
         ...toasts,
@@ -56,6 +74,13 @@ export function toast({ ...props }) {
 
       return newToasts
     })
+  }
+
+  // Auto-dismiss after specified time
+  if (props.duration !== Infinity) {
+    setTimeout(() => {
+      dismiss(id)
+    }, props.duration || TOAST_REMOVE_DELAY)
   }
 
   return {
@@ -87,7 +112,7 @@ export function useToast() {
         toastTimeouts.delete(toastId)
       }
 
-      setTimeout(() => remove(toastId), TOAST_REMOVE_DELAY)
+      setTimeout(() => remove(toastId), 300) // Shorter animation duration
     }
 
     toasts

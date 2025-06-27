@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { FaUpload, FaLink, FaFileAlt, FaChevronDown, FaChevronUp, FaDownload, FaShareAlt, FaBookmark, FaPrint } from 'react-icons/fa';
+import { FaUpload, FaLink, FaFileAlt, FaChevronDown, FaChevronUp, FaDownload, FaShareAlt, FaBookmark, FaPrint, FaInfoCircle } from 'react-icons/fa';
 import { IoMdSettings } from 'react-icons/io';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../components/ui/tabs';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -203,6 +203,7 @@ const AnalyzePage = () => {
           title: "加载失败",
           description: "无法获取分析模板，请检查服务器连接",
           variant: "destructive",
+          duration: 5000,
         });
       }
     };
@@ -240,7 +241,9 @@ const AnalyzePage = () => {
         setIsAnalyzing(false);
         toast({
           title: "分析完成",
-          description: "论文解析已完成，您可以查看分析结果"
+          description: "论文解析已完成，您可以查看分析结果",
+          variant: "success",
+          duration: 4000,
         });
       } 
       // 处理错误消息
@@ -251,6 +254,7 @@ const AnalyzePage = () => {
           title: "分析失败",
           description: data.message || "论文分析过程中出现错误",
           variant: "destructive",
+          duration: 8000,
         });
       }
     } catch (error) {
@@ -265,6 +269,7 @@ const AnalyzePage = () => {
         title: "错误",
         description: submittedTab === 'upload' ? "请上传PDF文件" : "请输入有效的arXiv链接",
         variant: "destructive",
+        duration: 3000,
       });
       return;
     }
@@ -296,6 +301,7 @@ const AnalyzePage = () => {
               title: "上传失败",
               description: "PDF文件上传失败，请重试",
               variant: "destructive",
+              duration: 5000,
             });
           }
         } else {
@@ -318,6 +324,7 @@ const AnalyzePage = () => {
           title: "连接错误",
           description: "服务器连接失败，请稍后重试",
           variant: "destructive",
+          duration: 5000,
         });
       };
       
@@ -335,6 +342,7 @@ const AnalyzePage = () => {
         title: "连接错误",
         description: "无法连接到服务器，请检查网络连接",
         variant: "destructive",
+        duration: 5000,
       });
     }
   };
@@ -376,6 +384,8 @@ const AnalyzePage = () => {
     toast({
       title: "下载成功",
       description: "分析结果已保存为Markdown文件",
+      variant: "success",
+      duration: 3000,
     });
   };
   
@@ -385,19 +395,190 @@ const AnalyzePage = () => {
       {showInput ? (
         <div className="flex-1">
           <AnalyzeHeader />
-          <div className="container mx-auto px-4 py-8">
-            <InputForm
-              activeTab={activeTab}
-              file={file}
-              setFile={setFile}
-              url={url}
-              setUrl={setUrl}
-              prompts={prompts}
-              selectedPrompt={selectedPrompt}
-              setSelectedPrompt={setSelectedPrompt}
-              handleSubmit={handleSubmit}
-              fileInputRef={fileInputRef}
-            />
+          <div className="container mx-auto px-4">
+            <div className="flex flex-row mt-8">
+              {/* 左侧边栏 - 输入选项 */}
+              <div className="w-[300px] bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden flex-shrink-0 mr-6">
+                <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
+                  <h2 className="font-medium text-gray-800">分析选项</h2>
+                </div>
+                
+                {/* 输入选项切换 */}
+                <div className="flex flex-col p-4">
+                  <button
+                    type="button"
+                    className={`w-full mb-2 py-2 px-3 text-left rounded-md flex items-center ${
+                      activeTab === 'upload'
+                        ? 'bg-indigo-100 text-indigo-700'
+                        : 'text-gray-700 hover:bg-gray-100'
+                    }`}
+                    onClick={() => setActiveTab('upload')}
+                  >
+                    <FaUpload className="mr-2" /> 上传PDF文件
+                  </button>
+                  <button
+                    type="button"
+                    className={`w-full mb-2 py-2 px-3 text-left rounded-md flex items-center ${
+                      activeTab === 'url'
+                        ? 'bg-indigo-100 text-indigo-700'
+                        : 'text-gray-700 hover:bg-gray-100'
+                    }`}
+                    onClick={() => setActiveTab('url')}
+                  >
+                    <FaLink className="mr-2" /> arXiv链接
+                  </button>
+
+                  {/* 提示词模板选择 */}
+                  <div className="mt-6">
+                    <h3 className="text-sm font-medium text-gray-700 mb-2">分析模板</h3>
+                    <select
+                      value={selectedPrompt.id}
+                      onChange={(e) => {
+                        const selected = prompts.find(p => p.id === e.target.value);
+                        if (selected) setSelectedPrompt(selected);
+                      }}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                    >
+                      {prompts.map((prompt) => (
+                        <option key={prompt.id} value={prompt.id}>
+                          {prompt.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* 提交按钮 */}
+                  <button
+                    onClick={() => handleSubmit(activeTab)}
+                    disabled={!((activeTab === 'upload' && file) || (activeTab === 'url' && url))}
+                    className={`
+                      mt-8 w-full py-2 rounded-md text-white font-medium
+                      ${((activeTab === 'upload' && file) || (activeTab === 'url' && url))
+                        ? 'bg-indigo-600 hover:bg-indigo-700'
+                        : 'bg-gray-400 cursor-not-allowed'}
+                    `}
+                  >
+                    开始分析
+                  </button>
+                </div>
+              </div>
+
+              {/* 右侧内容区 */}
+              <div className="flex-1">
+                <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+                  {/* 根据当前选项显示不同的输入表单 */}
+                  <div className="p-6">
+                    {activeTab === 'upload' ? (
+                      <div>
+                        <h3 className="text-lg font-medium text-gray-800 mb-4">上传论文PDF文件</h3>
+                        
+                        <div 
+                          className={`
+                            border-2 border-dashed rounded-lg p-8 mb-4 text-center
+                            ${file ? 'border-green-300 bg-green-50' : 'border-gray-300 hover:border-indigo-300 bg-gray-50'}
+                            transition-colors cursor-pointer
+                          `}
+                          onDragOver={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                          }}
+                          onDrop={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            if (e.dataTransfer.files.length > 0) {
+                              setFile(e.dataTransfer.files[0]);
+                            }
+                          }}
+                          onClick={() => fileInputRef.current.click()}
+                        >
+                          <input
+                            type="file"
+                            ref={fileInputRef}
+                            onChange={(e) => {
+                              if (e.target.files.length > 0) {
+                                setFile(e.target.files[0]);
+                              }
+                            }}
+                            accept=".pdf"
+                            className="hidden"
+                          />
+                          
+                          {file ? (
+                            <div className="flex flex-col items-center">
+                              <FaFileAlt className="text-5xl text-green-500 mb-4" />
+                              <p className="text-gray-800 font-medium text-xl mb-2">{file.name}</p>
+                              <p className="text-gray-500 text-md mb-4">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setFile(null);
+                                  if (fileInputRef.current) {
+                                    fileInputRef.current.value = '';
+                                  }
+                                }}
+                                className="text-sm text-red-600 hover:text-red-800 px-3 py-1 border border-red-200 rounded-md hover:bg-red-50"
+                              >
+                                移除文件
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="flex flex-col items-center py-12">
+                              <FaUpload className="text-5xl text-gray-400 mb-4" />
+                              <p className="text-gray-800 font-medium text-xl mb-2">拖拽PDF文件到此处或点击上传</p>
+                              <p className="text-gray-500">支持学术论文、研究报告、技术文档等PDF文件</p>
+                            </div>
+                          )}
+                        </div>
+                        
+                        <div className="bg-blue-50 border border-blue-100 rounded-md p-4 flex items-start">
+                          <FaInfoCircle className="text-blue-500 mt-0.5 mr-2 flex-shrink-0" />
+                          <div className="text-sm text-blue-800">
+                            <p className="font-medium mb-1">支持的PDF格式</p>
+                            <p>可以上传学术论文、研究报告、技术文档等PDF文件，系统将自动提取和分析内容。</p>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div>
+                        <h3 className="text-lg font-medium text-gray-800 mb-4">输入arXiv论文链接</h3>
+                        
+                        <div className="mb-6">
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            论文URL
+                          </label>
+                          <input
+                            type="url"
+                            value={url}
+                            onChange={(e) => setUrl(e.target.value)}
+                            placeholder="例如: https://arxiv.org/abs/2303.08774"
+                            className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 text-base"
+                          />
+                        </div>
+
+                        {url && (
+                          <div className="mb-6 p-4 border border-gray-200 rounded-md">
+                            <h4 className="font-medium text-gray-700 mb-2">预览信息</h4>
+                            <p className="text-gray-600">URL: {url}</p>
+                            <p className="text-gray-600 mt-1">
+                              将使用 <span className="font-medium text-indigo-600">{selectedPrompt.name}</span> 模板进行分析
+                            </p>
+                          </div>
+                        )}
+                        
+                        <div className="bg-blue-50 border border-blue-100 rounded-md p-4 flex items-start">
+                          <FaInfoCircle className="text-blue-500 mt-0.5 mr-2 flex-shrink-0" />
+                          <div className="text-sm text-blue-800">
+                            <p className="font-medium mb-1">支持的链接格式</p>
+                            <p>目前支持分析来自 arXiv.org 的论文链接，请输入完整的 URL 地址。系统将自动下载论文并进行分析。</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       ) : (
@@ -447,7 +628,12 @@ const AnalyzePage = () => {
                   </button>
                   
                   <button 
-                    onClick={() => toast({ title: "分享", description: "分享功能正在开发中" })}
+                    onClick={() => toast({ 
+                      title: "分享", 
+                      description: "分享功能正在开发中",
+                      variant: "info",
+                      duration: 2000,
+                    })}
                     className="flex items-center px-3 py-1.5 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-100"
                   >
                     <FaShareAlt className="mr-1.5" /> 
@@ -455,7 +641,12 @@ const AnalyzePage = () => {
                   </button>
                   
                   <button 
-                    onClick={() => toast({ title: "收藏", description: "收藏功能正在开发中" })}
+                    onClick={() => toast({ 
+                      title: "收藏", 
+                      description: "收藏功能正在开发中",
+                      variant: "info",
+                      duration: 2000,
+                    })}
                     className="flex items-center px-3 py-1.5 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-100"
                   >
                     <FaBookmark className="mr-1.5" /> 
